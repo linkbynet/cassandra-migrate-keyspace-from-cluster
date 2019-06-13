@@ -1,5 +1,6 @@
 #!/bin/bash
 
+hostname="$(hostname -i)"
 tar_file=$1
 bkp_name="bkp-$$"
 
@@ -15,11 +16,11 @@ mkdir -p "${bkp_name}"
 tar -xvzf "${tar_file}" -C "${bkp_name}"
 
 echo "Drop keyspace ${keyspace}"
-cqlsh -e "drop keyspace \"${keyspace}\";"
+cqlsh "${hostname}" -e "drop keyspace \"${keyspace}\";"
 
 echo "Create empty keyspace: ${keyspace}"
-cat "${bkp_name}/${keyspace}.sql" | cqlsh
+cat "${bkp_name}/${keyspace}.sql" | cqlsh "${hostname}"
 
 for dir in "${bkp_name}/${keyspace}/"*; do
-    sstableloader -d localhost "${dir}"
+    sstableloader -d "${hostname}" "${dir}"
 done
